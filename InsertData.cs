@@ -15,39 +15,38 @@ public class InsertData
         _logger = logger;
         _config = config;
     }
-
-    [Function("InsertData")]
-    public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+[Function("InsertData")]
+public async Task<HttpResponseData> Run(
+    [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+{
+    try
     {
-        try
-        {
-            var body = await JsonSerializer.DeserializeAsync<MyData>(req.Body);
+        var body = await JsonSerializer.DeserializeAsync<MyData>(req.Body);
 
-            var connStr = _config.GetConnectionString("Sql");
+        var connStr = _config.GetConnectionString("Sql");
 
-            using var conn = new SqlConnection(connStr);
-            await conn.OpenAsync();
+        using var conn = new SqlConnection(connStr);
+        await conn.OpenAsync();
 
-            var cmd = new SqlCommand(
-                "INSERT INTO TestData (Name) VALUES (@Name)", conn);
+        var cmd = new SqlCommand(
+            "INSERT INTO TestData (Name) VALUES (@Name)", conn);
 
-            cmd.Parameters.AddWithValue("@Name", body.Name);
+        cmd.Parameters.AddWithValue("@Name", body.Name);
 
-            await cmd.ExecuteNonQueryAsync();
+        await cmd.ExecuteNonQueryAsync();
 
-            var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-            await response.WriteStringAsync("Inserted!");
-            return response;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "InsertData failed.");
-            var response = req.CreateResponse(System.Net.HttpStatusCode.InternalServerError);
-            await response.WriteStringAsync(ex.ToString());
-            return response;
-        }
+        var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
+        await response.WriteStringAsync("Inserted!");
+        return response;
     }
+    catch (Exception ex)
+    {
+        var response = req.CreateResponse(System.Net.HttpStatusCode.InternalServerError);
+        await response.WriteStringAsync("ERROR: " + ex.ToString());
+        return response;
+    }
+}
+
 }
 
 public class MyData
