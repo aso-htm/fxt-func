@@ -21,6 +21,9 @@ public async Task<HttpResponseData> Run(
 {
     try
     {
+        using var reader = new StreamReader(req.Body);
+var raw = await reader.ReadToEndAsync();
+_logger.LogInformation($"RAW BODY = '{raw}'");
         var body = await JsonSerializer.DeserializeAsync<MyData>(req.Body);
 
         var connStr = _config.GetConnectionString("Sql");
