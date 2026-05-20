@@ -7,12 +7,12 @@ using System.Text.Json;
 
 public class InsertData
 {
-    private readonly ILogger _logger;
+    private readonly ILogger<InsertData> _logger;
     private readonly IConfiguration _config;
 
-    public InsertData(ILoggerFactory loggerFactory, IConfiguration config)
+    public InsertData(ILogger<InsertData> logger, IConfiguration config)
     {
-        _logger = loggerFactory.CreateLogger<InsertData>();
+        _logger = logger;
         _config = config;
     }
 
@@ -22,25 +22,19 @@ public class InsertData
     {
         try
         {
-            _logger.LogInformation("InsertData started.");
-
             var body = await JsonSerializer.DeserializeAsync<MyData>(req.Body);
-            _logger.LogInformation($"Received Name = {body?.Name}");
 
             var connStr = _config.GetConnectionString("Sql");
-            _logger.LogInformation($"Connection string loaded? {connStr != null}");
 
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
-            _logger.LogInformation("SQL connection opened.");
 
             var cmd = new SqlCommand(
                 "INSERT INTO TestData (Name) VALUES (@Name)", conn);
 
             cmd.Parameters.AddWithValue("@Name", body.Name);
-            await cmd.ExecuteNonQueryAsync();
 
-            _logger.LogInformation("SQL insert completed.");
+            await cmd.ExecuteNonQueryAsync();
 
             var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
             await response.WriteStringAsync("Inserted!");
@@ -48,7 +42,7 @@ public class InsertData
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "InsertData failed with exception.");
+            _logger.LogError(ex, "InsertData failed.");
             var response = req.CreateResponse(System.Net.HttpStatusCode.InternalServerError);
             await response.WriteStringAsync(ex.ToString());
             return response;
