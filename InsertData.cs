@@ -20,23 +20,39 @@ public class InsertData
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
     {
-        var body = await JsonSerializer.DeserializeAsync<MyData>(req.Body);
+        try
+        {
+            _logger.LogInformation("InsertData started.");
 
-        var connStr = _config.GetConnectionString("Sql");
+            var body = await JsonSerializer.DeserializeAsync<MyData>(req.Body);
+            _logger.LogInformation($"Received Name = {body?.Name}");
 
-        using var conn = new SqlConnection(connStr);
-        await conn.OpenAsync();
+            var connStr = _config.GetConnectionString("Sql");
+            _logger.LogInformation($"Connection string loaded? {connStr != null}");
 
-        var cmd = new SqlCommand(
-            "INSERT INTO TestData (Name) VALUES (@Name)", conn);
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+            _logger.LogInformation("SQL connection opened.");
 
-        cmd.Parameters.AddWithValue("@Name", body.Name);
+            var cmd = new SqlCommand(
+                "INSERT INTO TestData (Name) VALUES (@Name)", conn);
 
-        await cmd.ExecuteNonQueryAsync();
+            cmd.Parameters.AddWithValue("@Name", body.Name);
+            await cmd.ExecuteNonQueryAsync();
 
-        var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-        await response.WriteStringAsync("Inserted!");
-        return response;
+            _logger.LogInformation("SQL insert completed.");
+
+            var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
+            await response.WriteStringAsync("Inserted!");
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "InsertData failed with exception.");
+            var response = req.CreateResponse(System.Net.HttpStatusCode.InternalServerError);
+            await response.WriteStringAsync(ex.ToString());
+            return response;
+        }
     }
 }
 
