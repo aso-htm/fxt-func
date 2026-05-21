@@ -21,11 +21,8 @@ public async Task<HttpResponseData> Run(
 {
     try
     {
-        _logger.LogInformation("CONN = " + _config.GetConnectionString("Sql"));
 
         using var reader = new StreamReader(req.Body);
-var raw = await reader.ReadToEndAsync();
-_logger.LogInformation($"RAW BODY = '{raw}'");
         var body = await JsonSerializer.DeserializeAsync<MyData>(req.Body);
 
         var connStr = _config.GetConnectionString("Sql");
@@ -38,7 +35,6 @@ _logger.LogInformation($"RAW BODY = '{raw}'");
 
         cmd.Parameters.AddWithValue("@Name", body.Name);
 
-_logger.LogInformation($"SQL CMD = '{cmd.ToString}'");
         await cmd.ExecuteNonQueryAsync();
 
         var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
