@@ -38,7 +38,7 @@ _logger.LogInformation($"RAW BODY = '{raw}'");
 
         cmd.Parameters.AddWithValue("@Name", body.Name);
 
-_logger.LogInformation($"SQL CMD = '{cmd}'");
+_logger.LogInformation($"SQL CMD = '{cmd.ToString}'");
         await cmd.ExecuteNonQueryAsync();
 
         var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
