@@ -21,6 +21,8 @@ public async Task<HttpResponseData> Run(
 {
     try
     {
+        _logger.LogInformation("CONN = " + _config.GetConnectionString("Sql"));
+
         using var reader = new StreamReader(req.Body);
 var raw = await reader.ReadToEndAsync();
 _logger.LogInformation($"RAW BODY = '{raw}'");
